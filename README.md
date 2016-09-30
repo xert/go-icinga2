@@ -13,7 +13,20 @@ In very early stage of development. We'd love to accept your pull requests and c
 
 ## Usage ##
 
-Not usable at the moment.
+Not very usable at the moment.
+
+```go
+transport := &icinga.BasicAuthTransport{
+	Username: "user",
+	Password: "pass",
+
+	Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}},
+}
+
+icinga := icinga.NewClient("https://localhost:5665/", transport.Client())
+
+host, resp, err := icinga.Hosts.Get("hostname")
+```
 
 ## Licence ##
 

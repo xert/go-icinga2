@@ -1,6 +1,7 @@
 package icinga
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -17,20 +18,20 @@ type hostResults struct {
 
 type Host struct {
 	Name                  string      `json:"__name"`
-	Acknowledgement       float64     `json:"acknowledgement"`
-	AcknowledgementExpiry float64     `json:"acknowledgement_expiry"`
+	Acknowledgement       json.Number `json:"acknowledgement"`
+	AcknowledgementExpiry json.Number `json:"acknowledgement_expiry"`
 	ActionURL             string      `json:"action_url"`
 	Active                bool        `json:"active"`
 	Address               string      `json:"address"`
 	Address6              string      `json:"address6"`
-	CheckAttempt          int         `json:"check_attempt"`
+	CheckAttempt          json.Number `json:"check_attempt"`
 	CheckCommand          string      `json:"check_command"`
-	CheckInterval         int         `json:"check_interval"`
+	CheckInterval         json.Number `json:"check_interval"`
 	CheckPeriod           string      `json:"check_period"`
 	CheckTimeout          interface{} `json:"check_timeout"`
 	CommandEndpoint       string      `json:"command_endpoint"`
 	DisplayName           string      `json:"display_name"`
-	DowntimeDepth         int         `json:"downtime_depth"`
+	DowntimeDepth         json.Number `json:"downtime_depth"`
 	EnableActiveChecks    bool        `json:"enable_active_checks"`
 	EnableEventHandler    bool        `json:"enable_event_handler"`
 	EnableFlapping        bool        `json:"enable_flapping"`
@@ -40,61 +41,61 @@ type Host struct {
 	EventCommand          string      `json:"event_command"`
 	Flapping              bool        `json:"flapping"`
 	FlappingLastChange    float64     `json:"flapping_last_change"`
-	FlappingNegative      int         `json:"flapping_negative"`
-	FlappingPositive      int         `json:"flapping_positive"`
-	FlappingThreshold     int         `json:"flapping_threshold"`
+	FlappingNegative      json.Number `json:"flapping_negative"`
+	FlappingPositive      json.Number `json:"flapping_positive"`
+	FlappingThreshold     json.Number `json:"flapping_threshold"`
 	ForceNextCheck        bool        `json:"force_next_check"`
 	ForceNextNotification bool        `json:"force_next_notification"`
 	Groups                []string    `json:"groups"`
-	HaMode                int         `json:"ha_mode"`
+	HaMode                json.Number `json:"ha_mode"`
 	IconImage             string      `json:"icon_image"`
 	IconImageAlt          string      `json:"icon_image_alt"`
 	LastCheck             float64     `json:"last_check"`
 	LastCheckResult       struct {
-		Active          bool     `json:"active"`
-		CheckSource     string   `json:"check_source"`
-		Command         []string `json:"command"`
-		ExecutionEnd    float64  `json:"execution_end"`
-		ExecutionStart  float64  `json:"execution_start"`
-		ExitStatus      int      `json:"exit_status"`
-		Output          string   `json:"output"`
-		PerformanceData []string `json:"performance_data"`
-		ScheduleEnd     float64  `json:"schedule_end"`
-		ScheduleStart   float64  `json:"schedule_start"`
-		State           int      `json:"state"`
-		Type            string   `json:"type"`
+		Active          bool        `json:"active"`
+		CheckSource     string      `json:"check_source"`
+		Command         []string    `json:"command"`
+		ExecutionEnd    float64     `json:"execution_end"`
+		ExecutionStart  float64     `json:"execution_start"`
+		ExitStatus      json.Number `json:"exit_status"`
+		Output          string      `json:"output"`
+		PerformanceData []string    `json:"performance_data"`
+		ScheduleEnd     float64     `json:"schedule_end"`
+		ScheduleStart   float64     `json:"schedule_start"`
+		State           json.Number `json:"state"`
+		Type            string      `json:"type"`
 		VarsAfter       struct {
-			Attempt   int  `json:"attempt"`
-			Reachable bool `json:"reachable"`
-			State     int  `json:"state"`
-			StateType int  `json:"state_type"`
+			Attempt   json.Number `json:"attempt"`
+			Reachable bool        `json:"reachable"`
+			State     json.Number `json:"state"`
+			StateType json.Number `json:"state_type"`
 		} `json:"vars_after"`
 		VarsBefore struct {
-			Attempt   int  `json:"attempt"`
-			Reachable bool `json:"reachable"`
-			State     int  `json:"state"`
-			StateType int  `json:"state_type"`
+			Attempt   json.Number `json:"attempt"`
+			Reachable bool        `json:"reachable"`
+			State     json.Number `json:"state"`
+			StateType json.Number `json:"state_type"`
 		} `json:"vars_before"`
 	} `json:"last_check_result"`
-	LastHardState        int         `json:"last_hard_state"`
+	LastHardState        json.Number `json:"last_hard_state"`
 	LastHardStateChange  float64     `json:"last_hard_state_change"`
 	LastReachable        bool        `json:"last_reachable"`
-	LastState            int         `json:"last_state"`
+	LastState            json.Number `json:"last_state"`
 	LastStateChange      float64     `json:"last_state_change"`
 	LastStateDown        float64     `json:"last_state_down"`
-	LastStateType        int         `json:"last_state_type"`
-	LastStateUnreachable int         `json:"last_state_unreachable"`
+	LastStateType        json.Number `json:"last_state_type"`
+	LastStateUnreachable json.Number `json:"last_state_unreachable"`
 	LastStateUp          float64     `json:"last_state_up"`
-	MaxCheckAttempts     int         `json:"max_check_attempts"`
+	MaxCheckAttempts     json.Number `json:"max_check_attempts"`
 	NextCheck            float64     `json:"next_check"`
 	Notes                string      `json:"notes"`
 	NotesURL             string      `json:"notes_url"`
 	OriginalAttributes   interface{} `json:"original_attributes"`
 	Package              string      `json:"package"`
 	Paused               bool        `json:"paused"`
-	RetryInterval        int         `json:"retry_interval"`
-	State                int         `json:"state"`
-	StateType            int         `json:"state_type"`
+	RetryInterval        json.Number `json:"retry_interval"`
+	State                json.Number `json:"state"`
+	StateType            json.Number `json:"state_type"`
 	Templates            []string    `json:"templates"`
 	Type                 string      `json:"type"`
 	Vars                 struct {
@@ -114,7 +115,7 @@ type Host struct {
 func (s *HostsService) Get(name string) (*Host, *http.Response, error) {
 	// TODO check name (not empty)
 
-	u := fmt.Sprintf("objects/xhosts/%s", name)
+	u := fmt.Sprintf("objects/hosts/%s", name)
 	req, err := s.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err

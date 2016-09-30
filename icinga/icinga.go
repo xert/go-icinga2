@@ -39,7 +39,7 @@ type service struct {
 }
 
 // NewClient returns a new Icinga2 API client
-func NewClient(httpClient *http.Client, baseURL string) *Client {
+func NewClient(baseURL string, httpClient *http.Client) *Client {
 	// TODO Check error
 	u, _ := url.Parse(fmt.Sprintf("%s%s/", baseURL, apiVersion))
 	c := &Client{client: httpClient, BaseURL: u, UserAgent: userAgent}

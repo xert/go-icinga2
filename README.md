@@ -13,3 +13,7 @@ In very early stage of development.
 ## Usage ##
 
 Not usable at the moment.
+
+## Licence ##
+
+This library is distributed under the New BSD License found in the [LICENSE](./LICENSE) file.

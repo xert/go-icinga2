@@ -7,10 +7,18 @@ import (
 
 type HostsService service
 
+type hostServiceResults struct {
+	Results []hostResults `json:"results"`
+}
+
+type hostResults struct {
+	Attrs Host `json:"attrs"`
+}
+
 type Host struct {
 	Name                  string      `json:"__name"`
-	Acknowledgement       int         `json:"acknowledgement"`
-	AcknowledgementExpiry int         `json:"acknowledgement_expiry"`
+	Acknowledgement       float64     `json:"acknowledgement"`
+	AcknowledgementExpiry float64     `json:"acknowledgement_expiry"`
 	ActionURL             string      `json:"action_url"`
 	Active                bool        `json:"active"`
 	Address               string      `json:"address"`
@@ -104,17 +112,19 @@ type Host struct {
 
 // Get a single Host.
 func (s *HostsService) Get(name string) (*Host, *http.Response, error) {
-	u := fmt.Sprintf("objects/hosts/%s", name)
+	// TODO check name (not empty)
+
+	u := fmt.Sprintf("objects/xhosts/%s", name)
 	req, err := s.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	host := new(Host)
-	resp, err := s.client.Do(req, host)
+	results := new(hostServiceResults)
+	resp, err := s.client.Do(req, results)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return host, resp, err
+	return &results.Results[0].Attrs, resp, err
 }

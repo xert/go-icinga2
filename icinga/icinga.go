@@ -12,6 +12,7 @@ import (
 
 const (
 	libraryVersion = "1"
+	apiVersion     = "v1"
 	userAgent      = "go-icinga/" + libraryVersion
 	mediaTypeJson  = "application/json"
 )
@@ -40,7 +41,7 @@ type service struct {
 // NewClient returns a new Icinga2 API client
 func NewClient(httpClient *http.Client, baseURL string) *Client {
 	// TODO Check error
-	u, _ := url.Parse(baseURL)
+	u, _ := url.Parse(fmt.Sprintf("%s%s/", baseURL, apiVersion))
 	c := &Client{client: httpClient, BaseURL: u, UserAgent: userAgent}
 
 	c.common.client = c
@@ -69,6 +70,8 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 			return nil, err
 		}
 	}
+
+	fmt.Println(u.String())
 
 	req, err := http.NewRequest(method, u.String(), buf)
 	if err != nil {
@@ -127,11 +130,10 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 
 /*
 An ErrorResponse reports one or more errors caused by an API request.
-GitHub API docs: http://developer.github.com/v3/#client-errors
 */
 type ErrorResponse struct {
 	Response *http.Response // HTTP response that caused this error
-	Code     int            `json:"error"`  // error code
+	Code     int64          `json:"error"`  // error code
 	Status   string         `json:"status"` // error message
 }
 
@@ -141,42 +143,11 @@ func (r *ErrorResponse) Error() string {
 		r.Response.StatusCode, r.Code, r.Status)
 }
 
-/*
-An Error reports more details on an individual error in an ErrorResponse.
-These are the possible validation error codes:
-    missing:
-        resource does not exist
-    missing_field:
-        a required field on a resource has not been set
-    invalid:
-        the formatting of a field is invalid
-    already_exists:
-        another resource has the same valid as this field
-    custom:
-        some resources return this (e.g. github.User.CreateKey()), additional
-        information is set in the Message field of the Error
-GitHub API docs: http://developer.github.com/v3/#client-errors
-*/
-type Error struct {
-	Resource string `json:"resource"` // resource on which the error occurred
-	Field    string `json:"field"`    // field on which the error occurred
-	Code     string `json:"code"`     // validation error code
-	Message  string `json:"message"`  // Message describing the error. Errors with Code == "custom" will always have this set.
-}
-
-func (e *Error) Error() string {
-	return fmt.Sprintf("%v error caused by %v field on %v resource",
-		e.Code, e.Field, e.Resource)
-}
-
 // CheckResponse checks the API response for errors, and returns them if
 // present.  A response is considered an error if it has a status code outside
 // the 200 range.  API error responses are expected to have either no response
 // body, or a JSON response body that maps to ErrorResponse.  Any other
 // response body will be silently ignored.
-//
-// The error type will be *RateLimitError for rate limit exceeded errors,
-// and *TwoFactorAuthError for two-factor authentication errors.
 func CheckResponse(r *http.Response) error {
 	if c := r.StatusCode; 200 <= c && c <= 299 {
 		return nil

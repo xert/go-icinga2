@@ -9,7 +9,7 @@ go-icinga2 is a Go client library for accessing the [Icinga2 API](http://docs.ic
 
 ## Status ##
 
-In very early stage of development.
+In very early stage of development. We'd love to accept your pull requests and contributions to this project.
 
 ## Usage ##
 

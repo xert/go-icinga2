@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// HostService handles communication with the host object related methods of the Icinga2 API
+// HostsService handles communication with the host object related methods of the Icinga2 API
 type HostsService service
 
 type hostServiceResults struct {

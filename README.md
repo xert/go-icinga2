@@ -4,11 +4,12 @@ go-icinga2 is a Go client library for accessing the [Icinga2 API](http://docs.ic
 
 [![Build Status](https://travis-ci.org/xert/go-icinga2.svg?branch=master)](https://travis-ci.org/xert/go-icinga2)
 [![Go Report Card](https://goreportcard.com/badge/github.com/xert/go-icinga2)](https://goreportcard.com/report/github.com/xert/go-icinga2)
+[![codecov](https://codecov.io/gh/xert/go-icinga2/branch/master/graph/badge.svg)](https://codecov.io/gh/xert/go-icinga2)
 [![GoDoc](https://godoc.org/github.com/xert/go-icinga2/icinga?status.svg)](https://godoc.org/github.com/xert/go-icinga2/icinga)
 
 ## Status ##
 
-In very early stage of development.
+In very early stage of development. We'd love to accept your pull requests and contributions to this project.
 
 ## Usage ##
 

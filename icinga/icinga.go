@@ -17,6 +17,7 @@ const (
 	mediaTypeJson  = "application/json"
 )
 
+// Client manages communication with the Icinga2 API
 type Client struct {
 	// HTTP client used to communicate with the API.
 	client *http.Client

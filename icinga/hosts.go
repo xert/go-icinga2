@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// HostService handles communication with the host object related methods of the Icinga2 API
 type HostsService service
 
 type hostServiceResults struct {
@@ -16,6 +17,7 @@ type hostResults struct {
 	Attrs Host `json:"attrs"`
 }
 
+// Host represents a Icinga2 Host object
 type Host struct {
 	Name                  string      `json:"__name,omitempty"`
 	Acknowledgement       json.Number `json:"acknowledgement,omitempty"`

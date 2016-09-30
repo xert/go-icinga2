@@ -14,7 +14,7 @@ const (
 	libraryVersion = "1"
 	apiVersion     = "v1"
 	userAgent      = "go-icinga/" + libraryVersion
-	mediaTypeJson  = "application/json"
+	mediaTypeJSON  = "application/json"
 )
 
 // Client manages communication with the Icinga2 API
@@ -80,9 +80,9 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	}
 
 	if body != nil {
-		req.Header.Set("Content-Type", mediaTypeJson)
+		req.Header.Set("Content-Type", mediaTypeJSON)
 	}
-	req.Header.Set("Accept", mediaTypeJson)
+	req.Header.Set("Accept", mediaTypeJSON)
 	if c.UserAgent != "" {
 		req.Header.Set("User-Agent", c.UserAgent)
 	}

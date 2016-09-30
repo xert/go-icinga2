@@ -1,4 +1,4 @@
-# go-icinga
+# go-icinga2
 
 Golang Icinga2 API library
 

@@ -1,7 +1,9 @@
 package icinga
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -35,12 +37,24 @@ func setup() {
 	server = httptest.NewServer(mux)
 
 	// icinga client configured to use test server
-	client = NewClient(server.URL, nil)
+	client = NewClient(server.URL+"/", nil)
 }
 
 // teardown closes the test HTTP server.
 func teardown() {
-	// server.Close()
+	server.Close()
+}
+
+func testMethod(t *testing.T, r *http.Request, want string) {
+	if got := r.Method; got != want {
+		t.Errorf("Request method: %v, want %v", got, want)
+	}
+}
+
+func testHeader(t *testing.T, r *http.Request, header string, want string) {
+	if got := r.Header.Get(header); got != want {
+		t.Errorf("Header.Get(%q) returned %q, want %q", header, got, want)
+	}
 }
 
 func testURLParseError(t *testing.T, err error) {
@@ -103,10 +117,151 @@ func TestNewRequest_invalidJSON(t *testing.T) {
 	}
 }
 
+func TestNewRequest_badMethod(t *testing.T) {
+	c := NewClient(baseURL, nil)
+	_, err := c.NewRequest(" ", "/", nil)
+	if err == nil {
+		t.Error("Expected error to be returned.")
+	}
+}
+
 func TestNewRequest_badURL(t *testing.T) {
 	c := NewClient(baseURL, nil)
 	_, err := c.NewRequest("GET", ":", nil)
 	testURLParseError(t, err)
+}
+
+// ensure that no User-Agent header is set if the client's UserAgent is empty.
+// This caused a problem with Google's internal http client.
+func TestNewRequest_emptyUserAgent(t *testing.T) {
+	c := NewClient(baseURL, nil)
+	c.UserAgent = ""
+	req, err := c.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatalf("NewRequest returned unexpected error: %v", err)
+	}
+	if _, ok := req.Header["User-Agent"]; ok {
+		t.Fatal("constructed request contains unexpected User-Agent header")
+	}
+}
+
+// If a nil body is passed to icinga.NewRequest, make sure that nil is also
+// passed to http.NewRequest.  In most cases, passing an io.Reader that returns
+// no content is fine, since there is no difference between an HTTP request
+// body that is an empty string versus one that is not set at all.  However in
+// certain cases, intermediate systems may treat these differently resulting in
+// subtle errors.
+func TestNewRequest_emptyBody(t *testing.T) {
+	c := NewClient(baseURL, nil)
+	req, err := c.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatalf("NewRequest returned unexpected error: %v", err)
+	}
+	if req.Body != nil {
+		t.Fatalf("constructed request contains a non-nil Body")
+	}
+}
+
+func TestDo(t *testing.T) {
+	setup()
+	defer teardown()
+
+	type foo struct {
+		A string
+	}
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if m := "GET"; m != r.Method {
+			t.Errorf("Request method = %v, want %v", r.Method, m)
+		}
+		fmt.Fprint(w, `{"A":"a"}`)
+	})
+
+	req, _ := client.NewRequest("GET", "/", nil)
+	body := new(foo)
+	client.Do(req, body)
+
+	want := &foo{"a"}
+	if !reflect.DeepEqual(body, want) {
+		t.Errorf("Response body = %v, want %v", body, want)
+	}
+}
+
+func TestDo_httpError(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "Bad Request", 400)
+	})
+
+	req, _ := client.NewRequest("GET", "/", nil)
+	_, err := client.Do(req, nil)
+
+	if err == nil {
+		t.Error("Expected HTTP 400 error.")
+	}
+}
+
+// Test handling of an error caused by the internal http client's Do()
+// function.
+func TestDo_redirectLoop(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/", http.StatusFound)
+	})
+
+	req, _ := client.NewRequest("GET", "/", nil)
+	_, err := client.Do(req, nil)
+
+	if err == nil {
+		t.Error("Expected error to be returned.")
+	}
+	if err, ok := err.(*url.Error); !ok {
+		t.Errorf("Expected a URL error; got %#v.", err)
+	}
+}
+
+func TestDo_noContent(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
+
+	var body json.RawMessage
+
+	req, _ := client.NewRequest("GET", "/", nil)
+	_, err := client.Do(req, &body)
+	if err != nil {
+		t.Fatalf("Do returned unexpected error: %v", err)
+	}
+}
+
+func TestDo_noWriter(t *testing.T) {
+	setup()
+	defer teardown()
+
+	body := `{"A":"a"}`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, body)
+	})
+
+	buff := new(bytes.Buffer)
+
+	req, _ := client.NewRequest("GET", "/", nil)
+	_, err := client.Do(req, buff)
+	if err != nil {
+		t.Fatalf("Do returned unexpected error: %v", err)
+	}
+
+	if buff.String() != body {
+		t.Fatalf("Expected %#v, got %#v", body, buff.String())
+	}
 }
 
 func TestCheckResponse(t *testing.T) {

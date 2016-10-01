@@ -70,7 +70,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	var buf io.ReadWriter
 	if body != nil {
 		buf = new(bytes.Buffer)
-		err := json.NewEncoder(buf).Encode(body)
+		err = json.NewEncoder(buf).Encode(body)
 		if err != nil {
 			return nil, err
 		}
@@ -141,9 +141,9 @@ type ErrorResponse struct {
 }
 
 func (r *ErrorResponse) Error() string {
-	return fmt.Sprintf("%v %v: %d [%d] %v",
+	return fmt.Sprintf("%v %v: %d [%s] %v",
 		r.Response.Request.Method, r.Response.Request.URL,
-		r.Response.StatusCode, r.Code, r.Status)
+		r.Response.StatusCode, r.Code.String(), r.Status)
 }
 
 // CheckResponse checks the API response for errors, and returns them if

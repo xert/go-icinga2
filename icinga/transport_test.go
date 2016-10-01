@@ -31,7 +31,10 @@ func TestBasicAuthTransport(t *testing.T) {
 	basicAuthClient := NewClient(baseURL, tp.Client())
 	basicAuthClient.BaseURL = client.BaseURL
 	req, _ := basicAuthClient.NewRequest("GET", "/", nil)
-	basicAuthClient.Do(req, nil)
+	_, err := basicAuthClient.Do(req, nil)
+	if err != nil {
+		t.Errorf("Expected no error, got %s", err.Error())
+	}
 }
 
 func TestBasicAuthTransport_transport(t *testing.T) {

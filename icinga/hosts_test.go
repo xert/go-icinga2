@@ -30,23 +30,6 @@ func TestHostsService_Get(t *testing.T) {
 	}
 }
 
-func TestHostsService_Get_NewRequestError(t *testing.T) {
-	setup()
-	defer teardown()
-
-	_, _, err := client.Hosts.Get("1")
-
-	if err != nil {
-		e := err.(*ErrorResponse)
-		want := 404
-		if e.Response.StatusCode != want {
-			t.Errorf("Hosts.Get returned %+v, want %+v", e.Response.StatusCode, want)
-		}
-	} else {
-		t.Error("Expected HTTP error.")
-	}
-}
-
 func TestHostsService_Get_DoError(t *testing.T) {
 	setup()
 	defer teardown()

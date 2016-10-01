@@ -179,7 +179,10 @@ func TestDo(t *testing.T) {
 
 	req, _ := client.NewRequest("GET", "/", nil)
 	body := new(foo)
-	client.Do(req, body)
+	_, err := client.Do(req, body)
+	if err != nil {
+		t.Errorf("Expected no error, got %s", err.Error())
+	}
 
 	want := &foo{"a"}
 	if !reflect.DeepEqual(body, want) {

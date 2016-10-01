@@ -134,7 +134,7 @@ An ErrorResponse reports one or more errors caused by an API request.
 */
 type ErrorResponse struct {
 	Response *http.Response // HTTP response that caused this error
-	Code     int64          `json:"error"`  // error code
+	Code     json.Number    `json:"error"`  // error code
 	Status   string         `json:"status"` // error message
 }
 

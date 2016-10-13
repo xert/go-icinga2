@@ -2,90 +2,86 @@ package icinga
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
+	"strings"
 )
 
 // HostsService handles communication with the host object related methods of the Icinga2 API
 type HostsService service
 
 type hostServiceResults struct {
-	Results []hostResults `json:"results"`
+	Results []hostAttrs `json:"results"`
 }
 
-type hostResults struct {
-	Attrs Host `json:"attrs"`
+type hostAttrs struct {
+	Attrs Host `json:"attrs" icinga:""`
 }
 
 // Host represents a Icinga2 Host object
 type Host struct {
-	Name                  string      `json:"__name,omitempty"`
-	Acknowledgement       json.Number `json:"acknowledgement,omitempty"`
-	AcknowledgementExpiry json.Number `json:"acknowledgement_expiry,omitempty"`
-	ActionURL             string      `json:"action_url,omitempty"`
-	Address               string      `json:"address,omitempty"`
-	Address6              string      `json:"address6,omitempty"`
-	CheckAttempt          json.Number `json:"check_attempt,omitempty"`
-	CheckCommand          string      `json:"check_command,omitempty"`
-	CheckInterval         json.Number `json:"check_interval,omitempty"`
-	CheckPeriod           string      `json:"check_period,omitempty"`
-	CheckTimeout          interface{} `json:"check_timeout,omitempty"`
-	CommandEndpoint       string      `json:"command_endpoint,omitempty"`
-	DisplayName           string      `json:"display_name,omitempty"`
-	DowntimeDepth         json.Number `json:"downtime_depth,omitempty"`
-	EventCommand          string      `json:"event_command,omitempty"`
-	FlappingLastChange    float64     `json:"flapping_last_change,omitempty"`
-	FlappingNegative      json.Number `json:"flapping_negative,omitempty"`
-	FlappingPositive      json.Number `json:"flapping_positive,omitempty"`
-	FlappingThreshold     json.Number `json:"flapping_threshold,omitempty"`
-	Groups                []string    `json:"groups,omitempty"`
-	HaMode                json.Number `json:"ha_mode,omitempty"`
-	IconImage             string      `json:"icon_image,omitempty"`
-	IconImageAlt          string      `json:"icon_image_alt,omitempty"`
-	LastCheck             float64     `json:"last_check,omitempty"`
-	LastHardState         json.Number `json:"last_hard_state,omitempty"`
-	LastHardStateChange   float64     `json:"last_hard_state_change,omitempty"`
-	LastState             json.Number `json:"last_state,omitempty"`
-	LastStateChange       float64     `json:"last_state_change,omitempty"`
-	LastStateDown         float64     `json:"last_state_down,omitempty"`
-	LastStateType         json.Number `json:"last_state_type,omitempty"`
-	LastStateUnreachable  json.Number `json:"last_state_unreachable,omitempty"`
-	LastStateUp           float64     `json:"last_state_up,omitempty"`
-	MaxCheckAttempts      json.Number `json:"max_check_attempts,omitempty"`
-	NextCheck             float64     `json:"next_check,omitempty"`
-	Notes                 string      `json:"notes,omitempty"`
-	NotesURL              string      `json:"notes_url,omitempty"`
-	OriginalAttributes    interface{} `json:"original_attributes,omitempty"`
-	Package               string      `json:"package,omitempty"`
-	RetryInterval         json.Number `json:"retry_interval,omitempty"`
-	State                 json.Number `json:"state,omitempty"`
-	StateType             json.Number `json:"state_type,omitempty"`
-	Templates             []string    `json:"templates,omitempty"`
-	Type                  string      `json:"type,omitempty"`
-	Version               float64     `json:"version,omitempty"`
-	Zone                  string      `json:"zone,omitempty"`
-	Flapping              bool        `json:"flapping,omitempty"`
-	Active                bool        `json:"active,omitempty"`
-	EnableActiveChecks    bool        `json:"enable_active_checks,omitempty"`
-	EnableEventHandler    bool        `json:"enable_event_handler,omitempty"`
-	EnableFlapping        bool        `json:"enable_flapping,omitempty"`
-	EnableNotifications   bool        `json:"enable_notifications,omitempty"`
-	EnablePassiveChecks   bool        `json:"enable_passive_checks,omitempty"`
-	EnablePerfdata        bool        `json:"enable_perfdata,omitempty"`
-	ForceNextCheck        bool        `json:"force_next_check,omitempty"`
-	ForceNextNotification bool        `json:"force_next_notification,omitempty"`
-	LastReachable         bool        `json:"last_reachable,omitempty"`
-	Paused                bool        `json:"paused,omitempty"`
-	Volatile              bool        `json:"volatile,omitempty"`
-	Vars                  *struct {
-		Notification struct {
-			Mail struct {
-				Groups []string `json:"groups,omitempty"`
-			} `json:"mail,omitempty"`
-		} `json:"notification,omitempty"`
-		Os string `json:"os,omitempty"`
-	} `json:"vars,omitempty"`
-	LastCheckResult *struct {
+	Name                  string      `json:"__name,omitempty" icinga:"create"`
+	Acknowledgement       json.Number `json:"acknowledgement,omitempty" icinga:""`
+	AcknowledgementExpiry json.Number `json:"acknowledgement_expiry,omitempty" icinga:""`
+	ActionURL             string      `json:"action_url,omitempty" icinga:""`
+	Address               string      `json:"address,omitempty" icinga:"create"`
+	Address6              string      `json:"address6,omitempty" icinga:""`
+	CheckAttempt          json.Number `json:"check_attempt,omitempty" icinga:""`
+	CheckCommand          string      `json:"check_command,omitempty" icinga:"create"`
+	CheckInterval         json.Number `json:"check_interval,omitempty" icinga:""`
+	CheckPeriod           string      `json:"check_period,omitempty" icinga:""`
+	CheckTimeout          interface{} `json:"check_timeout,omitempty" icinga:""`
+	CommandEndpoint       string      `json:"command_endpoint,omitempty" icinga:""`
+	DisplayName           string      `json:"display_name,omitempty" icinga:""`
+	DowntimeDepth         json.Number `json:"downtime_depth,omitempty" icinga:""`
+	EventCommand          string      `json:"event_command,omitempty" icinga:""`
+	FlappingLastChange    float64     `json:"flapping_last_change,omitempty" icinga:""`
+	FlappingNegative      json.Number `json:"flapping_negative,omitempty" icinga:""`
+	FlappingPositive      json.Number `json:"flapping_positive,omitempty" icinga:""`
+	FlappingThreshold     json.Number `json:"flapping_threshold,omitempty" icinga:""`
+	Groups                []string    `json:"groups,omitempty" icinga:""`
+	HaMode                json.Number `json:"ha_mode,omitempty" icinga:""`
+	IconImage             string      `json:"icon_image,omitempty" icinga:""`
+	IconImageAlt          string      `json:"icon_image_alt,omitempty" icinga:""`
+	LastCheck             float64     `json:"last_check,omitempty" icinga:""`
+	LastHardState         json.Number `json:"last_hard_state,omitempty" icinga:""`
+	LastHardStateChange   float64     `json:"last_hard_state_change,omitempty" icinga:""`
+	LastState             json.Number `json:"last_state,omitempty" icinga:""`
+	LastStateChange       float64     `json:"last_state_change,omitempty" icinga:""`
+	LastStateDown         float64     `json:"last_state_down,omitempty" icinga:""`
+	LastStateType         json.Number `json:"last_state_type,omitempty" icinga:""`
+	LastStateUnreachable  json.Number `json:"last_state_unreachable,omitempty" icinga:""`
+	LastStateUp           float64     `json:"last_state_up,omitempty" icinga:""`
+	MaxCheckAttempts      json.Number `json:"max_check_attempts,omitempty" icinga:""`
+	NextCheck             float64     `json:"next_check,omitempty" icinga:""`
+	Notes                 string      `json:"notes,omitempty" icinga:""`
+	NotesURL              string      `json:"notes_url,omitempty" icinga:""`
+	OriginalAttributes    interface{} `json:"original_attributes,omitempty" icinga:""`
+	Package               string      `json:"package,omitempty" icinga:""`
+	RetryInterval         json.Number `json:"retry_interval,omitempty" icinga:""`
+	State                 json.Number `json:"state,omitempty" icinga:""`
+	StateType             json.Number `json:"state_type,omitempty" icinga:""`
+	Templates             []string    `json:"templates,omitempty" icinga:""`
+	Type                  string      `json:"type,omitempty" icinga:""`
+	Version               float64     `json:"version,omitempty" icinga:""`
+	Zone                  string      `json:"zone,omitempty" icinga:""`
+	Flapping              bool        `json:"flapping,omitempty" icinga:""`
+	Active                bool        `json:"active,omitempty" icinga:""`
+	EnableActiveChecks    bool        `json:"enable_active_checks,omitempty" icinga:""`
+	EnableEventHandler    bool        `json:"enable_event_handler,omitempty" icinga:""`
+	EnableFlapping        bool        `json:"enable_flapping,omitempty" icinga:""`
+	EnableNotifications   bool        `json:"enable_notifications,omitempty" icinga:""`
+	EnablePassiveChecks   bool        `json:"enable_passive_checks,omitempty" icinga:""`
+	EnablePerfdata        bool        `json:"enable_perfdata,omitempty" icinga:""`
+	ForceNextCheck        bool        `json:"force_next_check,omitempty" icinga:""`
+	ForceNextNotification bool        `json:"force_next_notification,omitempty" icinga:""`
+	LastReachable         bool        `json:"last_reachable,omitempty" icinga:""`
+	Paused                bool        `json:"paused,omitempty" icinga:""`
+	Volatile              bool        `json:"volatile,omitempty" icinga:""`
+	Vars                  interface{} `json:"vars,omitempty" icinga:""`
+	LastCheckResult       *struct {
 		Active          bool        `json:"active,omitempty"`
 		CheckSource     string      `json:"check_source,omitempty"`
 		Command         []string    `json:"command,omitempty"`
@@ -110,13 +106,28 @@ type Host struct {
 			State     json.Number `json:"state,omitempty"`
 			StateType json.Number `json:"state_type,omitempty"`
 		} `json:"vars_before,omitempty"`
-	} `json:"last_check_result,omitempty"`
+	} `json:"last_check_result,omitempty" icinga:""`
+}
+
+func (h *Host) objectForCreate() Host {
+	sourceType, sourceValue := reflect.TypeOf(*h), reflect.ValueOf(*h)
+
+	target := Host{}
+	targetValue := reflect.ValueOf(&target).Elem()
+
+	for i := 0; i < sourceType.NumField(); i++ {
+		icingaKey := sourceType.Field(i).Tag.Get("icinga")
+		if strings.Contains(icingaKey, "create") {
+			targetValue.Field(i).Set(sourceValue.Field(i))
+		}
+	}
+
+	return target
 }
 
 // Get a single Host.
 func (s *HostsService) Get(name string) (*Host, *http.Response, error) {
 	// TODO check name (not empty)
-
 	u := fmt.Sprintf("objects/hosts/%s", name)
 	req, err := s.client.NewRequest("GET", u, nil)
 	if err != nil {
@@ -130,4 +141,31 @@ func (s *HostsService) Get(name string) (*Host, *http.Response, error) {
 	}
 
 	return &results.Results[0].Attrs, resp, err
+}
+
+// Create Host.
+func (s *HostsService) Create(host *Host) (*Host, *http.Response, error) {
+	if host.Name == "" {
+		return nil, nil, errors.New("Host name is empty")
+	}
+
+	// TODO validate / encode host name
+
+	u := fmt.Sprintf("objects/hosts/%s", host.Name)
+
+	requestBody := hostAttrs{
+		Attrs: host.objectForCreate(),
+	}
+
+	req, err := s.client.NewRequest("PUT", u, requestBody)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	resp, err := s.client.Do(req, nil)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return nil, resp, nil
 }

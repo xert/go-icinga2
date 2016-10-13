@@ -108,18 +108,16 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 		resp.Body.Close()
 	}()
 
-	response := new(http.Response)
-
 	err = CheckResponse(resp)
 	if err != nil {
 		// even though there was an error, we still return the response
 		// in case the caller wants to inspect it further
-		return response, err
+		return resp, err
 	}
 
 	if v != nil {
 		if w, ok := v.(io.Writer); ok {
-			io.Copy(w, resp.Body)
+			_, err = io.Copy(w, resp.Body)
 		} else {
 			err = json.NewDecoder(resp.Body).Decode(v)
 			if err == io.EOF {
@@ -128,7 +126,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 		}
 	}
 
-	return response, err
+	return resp, err
 }
 
 /*
